@@ -4,10 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Muzendis.Context;
 
 namespace Muzendis
 {
@@ -23,6 +25,15 @@ namespace Muzendis
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            string connection = Configuration.GetConnectionString("MuzendisConnection");
+            
+            services.AddDbContext<CountriesDB>(options =>
+                options.UseSqlServer(connection));
+
+
+            //services.AddSingleton<ICountriesContext, InMemoryTemporaryStorage>();
+            services.AddTransient<ICountriesContext, CountriesContext>();
+            services.AddCors();
             services.AddMvc();
         }
 
@@ -33,7 +44,7 @@ namespace Muzendis
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
             app.UseMvc();
         }
     }
